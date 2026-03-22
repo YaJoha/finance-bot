@@ -4,7 +4,16 @@ from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, Con
 from datetime import datetime, timedelta
 import re
 import json
+from flask import Flask, request
+import logging
 from ai_functions import normalize_text_with_ai, categorize_expense, parse_free_text, generate_financial_insights
+
+# Настройка логирования
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+# Flask приложение для webhook
+flask_app = Flask(__name__)
 
 # --------------------------
 # Хранилище данных (в памяти)
@@ -709,19 +718,18 @@ async def remove_favorite(update: Update, context: ContextTypes.DEFAULT_TYPE):
 if __name__ == "__main__":
     TOKEN = os.getenv("BOT_TOKEN")
     OPENAI_KEY = os.getenv("OPENAI_API_KEY")
+    PORT = int(os.getenv("PORT", 10000))
     
     # Проверяем переменные окружения
     if not TOKEN:
         print("❌ ERROR: BOT_TOKEN not set in environment variables")
-        print("Add BOT_TOKEN to Render Environment Variables")
         exit(1)
     
     if not OPENAI_KEY:
         print("❌ ERROR: OPENAI_API_KEY not set in environment variables")
-        print("Add OPENAI_API_KEY to Render Environment Variables")
         exit(1)
 
-    print("🤖 Бот запускается...")
+    print("🤖 Бот запускается в webhook режиме...")
 
     app = ApplicationBuilder().token(TOKEN).build()
 
@@ -769,4 +777,20 @@ if __name__ == "__main__":
     # Хендлер для обычных сообщений (должен быть в конце)
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, add_transaction))
 
-    app.run_polling()
+    # Webhook endpoint
+    @flask_app.route(f"/webhook/{TOKEN}", methods=["POST"])
+    async def webhook():
+        """Handle incoming updates via webhook"""
+        data = request.get_json()
+        update = Update.de_json(data, app.bot)
+        await app.process_update(update)
+        return "OK", 200
+
+    # Health check endpoint
+    @flask_app.route("/health", methods=["GET"])
+    def health():
+        return "OK", 200
+
+    print(f"📡 Webhook сервер запущен на порту {PORT}")
+    print(f"📡 Webhook URL: https://your-app.onrender.com/webhook/{TOKEN}")
+    flask_app.run(host="0.0.0.0", port=PORT, debug=False)
