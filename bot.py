@@ -708,6 +708,18 @@ async def remove_favorite(update: Update, context: ContextTypes.DEFAULT_TYPE):
 # --------------------------
 if __name__ == "__main__":
     TOKEN = os.getenv("BOT_TOKEN")
+    OPENAI_KEY = os.getenv("OPENAI_API_KEY")
+    
+    # Проверяем переменные окружения
+    if not TOKEN:
+        print("❌ ERROR: BOT_TOKEN not set in environment variables")
+        print("Add BOT_TOKEN to Render Environment Variables")
+        exit(1)
+    
+    if not OPENAI_KEY:
+        print("❌ ERROR: OPENAI_API_KEY not set in environment variables")
+        print("Add OPENAI_API_KEY to Render Environment Variables")
+        exit(1)
 
     print("🤖 Бот запускается...")
 
