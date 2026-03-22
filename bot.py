@@ -707,7 +707,7 @@ async def remove_favorite(update: Update, context: ContextTypes.DEFAULT_TYPE):
 # Основная часть бота
 # --------------------------
 if __name__ == "__main__":
-    TOKEN = os.getenv("TELEGRAM_BOT_TOKEN", "8766236446:AAGxuFpyJj6L3x9w5DhJY7OonRLCFEEYU-U")
+    TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
 
     print("🤖 Бот запускается...")
 
